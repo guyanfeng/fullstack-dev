@@ -9,6 +9,7 @@
 | 微信内打开、微信里的分享卡片、小程序 web-view、业务域名校验文件 | `web/wechat-browser.md` |
 | iOS/Android 表现不一致、键盘遮挡、滚动穿透、安全区、日期、音视频、1px | `web/mobile-compat.md` |
 | 首屏慢、包体积大、图片、缓存、弱网 | `web/performance.md` |
+| 页面、组件、样式、颜色字号间距、shadcn/ui 主题、加载/空/错误状态、toast 和确认弹窗 | `design.md` |
 
 ## 项目结构
 
@@ -20,8 +21,11 @@
 │   ├── layout.tsx        # viewport、全局样式、Provider
 │   ├── (pages)/...       # 路由分组
 │   └── auth/             # 只放写 cookie 的 Route Handler（账号密码登录、退出，见 auth.md）；有独立 API 项目时，业务接口一律放在 API 里
-├── components/
-├── hooks/
+├── components/           # 分层见 design.md「组件化」
+│   ├── ui/               # shadcn 生成的组件
+│   ├── common/           # 通用组件：PageContainer、StateView、ConfirmDialog 等
+│   └── <模块>/           # 业务组件
+├── hooks/                # usePagedList 等
 ├── lib/
 │   ├── request.ts        # 唯一的请求封装
 │   └── env.ts            # 判断是否在微信内等
@@ -42,7 +46,7 @@
   }
   ```
   不要设置 `maximumScale: 1` 或 `userScalable: false`，这会禁止双指缩放，属于无障碍问题。iOS 输入框聚焦时放大的问题，用 16px 字号解决（见下文）。
-- 样式默认用 Tailwind，设计稿宽 375，直接用 px。布局用 flex 和百分比做自适应，不做 rem 整体缩放。
+- 样式默认用 Tailwind，设计稿宽 375，直接用 px。颜色、字号、圆角用 `design.md` 的语义 token，不写死色值。布局用 flex 和百分比做自适应，不做 rem 整体缩放。
 - 环境变量：只有带 `NEXT_PUBLIC_` 前缀的才会进入客户端包，所以密钥绝不能用这个前缀。
 
 ## 网络请求
@@ -56,11 +60,9 @@
 ## 交互底线
 
 ### 通用与移动端
-- 可点击区域不小于 44×44px。
-- 每个异步操作都要有加载态，提交按钮在请求期间禁用，防止重复提交。
-- 每个列表都要有空状态和加载失败的重试入口。
+- 点击区域、加载态、空状态、出错重试、操作反馈见 `design.md`「交互规则」。
 - 表单输入框 `font-size` 不小于 16px，否则 iOS 聚焦时会自动放大页面。
-- 底部固定栏要加 `padding-bottom: env(safe-area-inset-bottom)`。
+- 底部固定栏：新项目统一用 `BottomBar`（见 `design.md`「组件化」）；现有项目沿用已有写法，没处理安全区的补上。安全区的写法见 `web/mobile-compat.md`「安全区」。
 
 ### PC 端
 - 布局按断点重新排（比如列表变成多列、加侧边导航），不是把移动端布局拉宽或放大。
@@ -77,7 +79,7 @@
 npx tsc --noEmit                       # 类型检查
 npm run lint                           # 按项目实际脚本
 npm run build                          # next build 能通过，才说明没有在渲染阶段访问 window/document
-grep -rnE "NEXT_PUBLIC_[A-Z_]*(SECRET|KEY|TOKEN)" . --include=*.ts --include=*.tsx --include=.env* --exclude-dir=node_modules  # 命中的逐条确认是可以公开的值（如地图 key），不能是密钥
+grep -rnE "NEXT_PUBLIC_[A-Z_]*(SECRET|KEY|TOKEN)" . --include='*.ts' --include='*.tsx' --include='*.js' --include='*.jsx' --include='.env*' --exclude-dir=node_modules --exclude-dir=.next  # 命中的逐条确认是可以公开的值（如地图 key），不能是密钥
 grep -rn "localStorage" app components lib | grep -i token   # 应为空
 grep -rnE "<(div|span)[^>]*onClick" app components            # 命中的逐条确认，能改成 <button> 或 <a> 的要改
 ```

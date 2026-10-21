@@ -10,6 +10,7 @@
 |---|---|
 | 登录、手机号、用户信息、订阅消息、分享、文件上传下载 | `miniprogram/api-pitfalls.md` |
 | 包体积超限、分包、首屏慢、列表卡顿、内存告警 | `miniprogram/performance.md` |
+| 页面、组件、样式、颜色字号间距、wot UI 主题、加载/空/错误状态、toast 和确认弹窗 | `design.md` |
 
 ## 项目结构
 
@@ -19,12 +20,15 @@
 src/
 ├── pages/            # 主包页面（tabBar 页面必须在主包）
 ├── subpkg-*/         # 分包，按业务模块拆，如 subpkg-survey/
-├── components/       # 全局组件，见下方 easycom 规则
-├── composables/      # useXxx 组合式函数
+├── components/       # 通用组件和多处用到的业务组件，见下方 easycom 规则和 design.md「组件化」
+├── composables/      # useXxx 组合式函数，含 usePagedList
 ├── stores/           # Pinia
 ├── services/         # 接口请求，按业务模块一个文件
+├── styles/
+│   └── tokens.scss   # 设计 token，见 design.md
 ├── utils/
-│   └── request.ts    # 唯一的 uni.request 封装
+│   ├── request.ts    # 唯一的 uni.request 封装
+│   └── feedback.ts   # toast 和危险确认的唯一入口
 ├── static/           # 只放小图标，大图走 CDN
 ├── pages.json
 └── manifest.json
@@ -44,7 +48,7 @@ src/
   wx.xxx()
   // #endif
   ```
-- 尺寸单位用 `rpx`（设计稿宽 750）。1px 边框直接写 `1px`，不要写 `1rpx`，部分机型会消失。
+- 尺寸单位用 `rpx`（设计稿宽 750）。颜色、字号、间距用 `design.md` 的 token（`src/styles/tokens.scss`），不写死色值。1px 边框直接写 `1px`，不要写 `1rpx`，部分机型会消失。
 - 状态管理：
   - **只有跨页面共享的数据才放 Pinia**（`stores/`），比如当前用户信息、购物车数量。
   - 只在一个页面里用的数据放在页面自己的 `ref` / `reactive` 里，不进 store。
@@ -83,8 +87,8 @@ src/
 
 ```bash
 npx vue-tsc --noEmit                    # TS 项目；JS 项目跳过并说明
-grep -rnwE "window|document|localStorage|sessionStorage" src --include=*.vue --include=*.ts --include=*.js   # 应为空，有结果要逐条说明
-grep -rn "wx\." src --include=*.vue --include=*.ts --include=*.js   # 每处都要在 #ifdef MP-WEIXIN 内
+grep -rnwE "window|document|localStorage|sessionStorage" src --include='*.vue' --include='*.ts' --include='*.js'   # 应为空，有结果要逐条说明
+grep -rn "wx\." src --include='*.vue' --include='*.ts' --include='*.js'   # 每处都要在 #ifdef MP-WEIXIN 内
 npm run build:mp-weixin                 # 发行构建，必须能通过
 du -sh dist/build/mp-weixin             # 总包体积（HBuilderX 项目的产物在 unpackage/dist/build/mp-weixin）
 find dist/build/mp-weixin -maxdepth 1 -mindepth 1 -type d -name 'subpkg-*' -exec du -sh {} \;   # 各分包
