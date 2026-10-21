@@ -60,6 +60,7 @@
   const target = u.origin === origin ? u.pathname + u.search + u.hash : '/'
   ```
 - 登录页不能被缓存成公共页面，登录表单只通过 HTTPS 提交。
+- `Domain=.example.com` 的 cookie 会发给该主域下的所有子域，子域约束见 `security.md`「CSRF」。
 - 本地开发（`localhost`）时 cookie 不设 `Domain`（`.example.com` 在 localhost 上不生效）。cookie 的 `Domain`、`Secure` 从环境变量读，不要写死。Chrome 和 Firefox 允许 localhost 上的 `Secure` cookie，Safari 不一定，本地调试登录用 Chrome。
 
 ### API 侧的 CORS

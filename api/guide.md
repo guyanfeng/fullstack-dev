@@ -10,6 +10,7 @@
 | 小程序登录、手机号、access_token、内容安全检测 | `api/wechat.md` |
 | 建表、改表、迁移、查询、事务、索引 | `api/database.md` |
 | 写测试、本地运行、部署、日志、环境变量 | `api/testing-deploy.md` |
+| 越权、CSRF、上传、限流、SQL 拼接、请求外部 URL、依赖漏洞 | `security.md` |
 
 > 数据库默认用 **Drizzle + PostgreSQL**。如果项目实际用的不是这套，以项目现有代码为准，`api/database.md` 里的原则仍然适用。
 
@@ -70,7 +71,7 @@ export default { port: env.PORT, fetch: app.fetch }
 - 不要在每个 handler 里写 try/catch 再返回错误 JSON，交给 `onError` 统一处理。
 
 ### 中间件顺序
-`requestId` → `logger` → `secureHeaders` → `cors`（配置见 `auth.md`：精确的 Web origin + `credentials: true`）→ 路由级 `auth`（先读 `Authorization`，再读 cookie）。
+`requestId` → `logger` → `secureHeaders` → `cors`（配置见 `auth.md`：精确的 Web origin + `credentials: true`）→ `csrf`（服务 Web 时，见 `security.md`「CSRF」）→ 路由级 `auth`（先读 `Authorization`，再读 cookie）。
 鉴权中间件挂在需要登录的路由组上，不要全局挂载后再写一堆排除路径。
 
 ### Bun 相关
@@ -82,7 +83,7 @@ export default { port: env.PORT, fetch: app.fetch }
 - RESTful：`GET /surveys`、`POST /surveys`、`GET /surveys/:id`、`PATCH /surveys/:id`、`DELETE /surveys/:id`。
 - HTTP 一律 200，错误码按 `SKILL.md` 的错误码表。
 - 列表接口必须分页，从 `SKILL.md`「分页（两种，按场景选）」的两种里选一种。
-- 只能操作自己资源的接口，在 service 里校验归属（`where userId = ?`），不能只靠前端隐藏按钮。
+- 只能操作自己资源的接口，在 service 的查询条件里带上当前用户，不能只靠前端隐藏按钮（见 `security.md`「越权」）。
 - 写接口考虑幂等：提交答卷、消息推送回调之类的场景，用唯一约束或幂等键防止重复写入。
 
 ## 验收命令

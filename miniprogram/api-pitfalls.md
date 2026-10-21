@@ -51,6 +51,8 @@
 ## 文件上传下载
 
 - `uni.uploadFile` 和 `uni.downloadFile` 的域名需要单独配置在后台的 uploadFile / downloadFile 合法域名里，和 request 的合法域名分开配置。
+- 走 API 中转的 `uni.uploadFile` 不经过 `utils/request.ts` 封装，要手动在 `header` 里带 `Authorization`，并自己按 `code` 处理结果（返回的 `data` 是字符串，要先 `JSON.parse`）。不带的话会先被 CSRF 校验拒绝（`40300`），走不到 `40100` 的重新登录（见 `security.md`「CSRF」）。
+- 直传对象存储时只带 API 签发的凭证，**不带** API 的 `Authorization`（否则登录 token 会发给 OSS/CDN）；返回结果按对象存储的格式处理，没有 `code`。
 - 上传前先压缩图片（`uni.compressImage`，或在 `chooseMedia` 时设置 `sizeType: ['compressed']`）。
 - 大文件优先考虑由 API 签发直传凭证，直接上传到对象存储（OSS / COS），不要经过自己的 API 中转。
 

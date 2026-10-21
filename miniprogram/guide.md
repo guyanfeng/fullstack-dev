@@ -10,6 +10,7 @@
 |---|---|
 | 登录、手机号、用户信息、订阅消息、分享、文件上传下载 | `miniprogram/api-pitfalls.md` |
 | 包体积超限、分包、首屏慢、列表卡顿、内存告警 | `miniprogram/performance.md` |
+| 按 id 读写资源、渲染用户内容、用户填的链接、文件上传、限流、依赖漏洞 | `security.md` |
 | 页面、组件、样式、颜色字号间距、wot UI 主题、加载/空/错误状态、toast 和确认弹窗 | `design.md` |
 
 ## 项目结构
