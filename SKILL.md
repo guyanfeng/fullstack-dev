@@ -1,6 +1,6 @@
 ---
 name: fullstack-dev
-description: 全栈项目的工程规范与平台坑，按项目类型分别适用：微信小程序（uni-app）、Web 网页（H5 与 PC，Next.js，含在微信内置浏览器里打开的情况）、后端 API（Hono + Bun + PostgreSQL）。各端通常是互相独立的项目。在写或改这几类项目的代码、调用 uni.* / wx.* API、做登录鉴权、写接口和数据库、做安全审查（越权、CSRF、XSS、上传、限流、依赖漏洞）、写页面样式和组件（设计 token、shadcn/ui、wot UI、加载/空/错误状态、toast 与确认弹窗）、处理性能、上线配置与小程序审核时使用。管工程约束、平台坑和设计系统的结构与交互规则，不负责审美判断和视觉方向（用 design-taste-frontend / redesign-existing-projects）和截图验收（用 visual-render-checker）；暂不覆盖微信支付、微信 JSSDK（服务号）和 iOS/Android 原生；不适用于 React Native、Flutter、支付宝或抖音小程序。
+description: 全栈项目的工程规范与平台坑，按项目类型分别适用：微信小程序（uni-app）、Web 网页（H5 与 PC，Next.js，含在微信内置浏览器里打开的情况）、后端 API（Hono + Bun + PostgreSQL）。各端通常是互相独立的项目。在写或改这几类项目的代码、调用 uni.* / wx.* API、做登录鉴权、写接口和数据库、做安全审查（越权、CSRF、XSS、上传、限流、依赖漏洞）、做后台管理和角色权限（RBAC）、写页面样式和组件（设计 token、shadcn/ui、wot UI、加载/空/错误状态、toast 与确认弹窗）、处理性能、上线配置与小程序审核时使用。管工程约束、平台坑和设计系统的结构与交互规则，不负责审美判断和视觉方向（用 design-taste-frontend / redesign-existing-projects）和截图验收（用 visual-render-checker）；暂不覆盖微信支付、微信 JSSDK（服务号）和 iOS/Android 原生；不适用于 React Native、Flutter、支付宝或抖音小程序。
 ---
 
 # 全栈开发规范
@@ -41,8 +41,9 @@ description: 全栈项目的工程规范与平台坑，按项目类型分别适�
 | 涉及 | 读取 |
 |---|---|
 | 用户表、登录、注册、密码、token、cookie、鉴权、CORS | `auth.md` |
+| 后台管理项目、管理员账号、角色、权限点、菜单和按钮权限、操作审计 | `rbac.md` |
 | 按 id 读写资源、cookie 鉴权的写接口、渲染用户内容、用户填的链接、文件上传、限流、调用外部 URL、依赖漏洞，或用户要求安全审查 | `security.md` |
-| 小程序或 Web 的页面、组件、组件拆分与复用、样式、颜色字号间距、组件库主题、加载/空/错误状态、toast 和确认弹窗 | `design.md` |
+| 小程序或 Web 的页面、组件、组件拆分与复用、样式、颜色字号间距、组件库主题、加载/空/错误状态、toast 和确认弹窗 | `design.md`，再读对应端的 `web/design.md` 或 `miniprogram/design.md` |
 
 ## 前端与 API 之间的默认约定
 
@@ -112,7 +113,7 @@ description: 全栈项目的工程规范与平台坑，按项目类型分别适�
 
 ## 验收（完成任务前必须做）
 
-1. 执行改动涉及的每一类项目 guide 末尾「验收命令」里的命令；改了页面、组件或样式的，再执行 `design.md` 末尾的验收命令；`security.md` 末尾的验收命令按其中写明的条件执行。
+1. 执行改动涉及的每一类项目 guide 末尾「验收命令」里的命令；改了页面、组件或样式的，再执行对应端 `web/design.md` 或 `miniprogram/design.md` 末尾的验收命令；`security.md` 末尾的验收命令按其中写明的条件执行。
 2. 在回复里**贴出命令和输出**（太长的输出贴关键部分）。没有执行的命令不能说「已通过」。
 3. 某条命令因为环境原因无法执行（没有装依赖、缺少数据库等），明确说明没执行哪条、为什么，并告诉用户怎么自己验证。
 4. 说明改了哪些文件，以及哪些需要用户在真机或线上环境确认（真机表现、微信后台配置等，命令无法覆盖）。

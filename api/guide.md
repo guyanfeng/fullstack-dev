@@ -11,6 +11,7 @@
 | 建表、改表、迁移、查询、事务、索引 | `api/database.md` |
 | 写测试、本地运行、部署、日志、环境变量 | `api/testing-deploy.md` |
 | 越权、CSRF、上传、限流、SQL 拼接、请求外部 URL、依赖漏洞 | `security.md` |
+| `/admin` 接口、管理员、角色、权限点、操作审计 | `rbac.md` |
 
 > 数据库默认用 **Drizzle + PostgreSQL**。如果项目实际用的不是这套，以项目现有代码为准，`api/database.md` 里的原则仍然适用。
 
@@ -45,8 +46,9 @@ src/
 import { app } from './app'
 import { env } from './env'
 
-export default { port: env.PORT, fetch: app.fetch }
+export default { hostname: env.HOST, port: env.PORT, fetch: app.fetch }
 ```
+- `env.HOST` 在 `env.ts` 里默认 `127.0.0.1`，只监听本机，不暴露到公网；本地用真机调试，或者 Nginx 在另一台机器时，再在环境变量里覆盖（见 `api/testing-deploy.md`「真实 IP」）。
 
 ### 路由
 - 每个模块 `new Hono()` 后用 `app.route('/surveys', surveys)` 挂载。

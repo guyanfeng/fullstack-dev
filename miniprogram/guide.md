@@ -11,7 +11,7 @@
 | 登录、手机号、用户信息、订阅消息、分享、文件上传下载 | `miniprogram/api-pitfalls.md` |
 | 包体积超限、分包、首屏慢、列表卡顿、内存告警 | `miniprogram/performance.md` |
 | 按 id 读写资源、渲染用户内容、用户填的链接、文件上传、限流、依赖漏洞 | `security.md` |
-| 页面、组件、样式、颜色字号间距、wot UI 主题、加载/空/错误状态、toast 和确认弹窗 | `design.md` |
+| 页面、组件、样式、颜色字号间距、wot UI 主题、加载/空/错误状态、toast 和确认弹窗 | `design.md`（token 和规则）+ `miniprogram/design.md`（小程序落地和验收） |
 
 ## 项目结构
 
@@ -26,7 +26,7 @@ src/
 ├── stores/           # Pinia
 ├── services/         # 接口请求，按业务模块一个文件
 ├── styles/
-│   └── tokens.scss   # 设计 token，见 design.md
+│   └── tokens.scss   # 设计 token，见 miniprogram/design.md
 ├── utils/
 │   ├── request.ts    # 唯一的 uni.request 封装
 │   └── feedback.ts   # toast 和危险确认的唯一入口
@@ -49,7 +49,7 @@ src/
   wx.xxx()
   // #endif
   ```
-- 尺寸单位用 `rpx`（设计稿宽 750）。颜色、字号、间距用 `design.md` 的 token（`src/styles/tokens.scss`），不写死色值。1px 边框直接写 `1px`，不要写 `1rpx`，部分机型会消失。
+- 尺寸单位用 `rpx`（设计稿宽 750）。颜色、字号、间距用 `design.md` 的 token（落地在 `src/styles/tokens.scss`，见 `miniprogram/design.md`），不写死色值。1px 边框直接写 `1px`，不要写 `1rpx`，部分机型会消失。
 - 状态管理：
   - **只有跨页面共享的数据才放 Pinia**（`stores/`），比如当前用户信息、购物车数量。
   - 只在一个页面里用的数据放在页面自己的 `ref` / `reactive` 里，不进 store。

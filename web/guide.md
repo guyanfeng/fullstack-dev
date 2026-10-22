@@ -9,8 +9,9 @@
 | 微信内打开、微信里的分享卡片、小程序 web-view、业务域名校验文件 | `web/wechat-browser.md` |
 | iOS/Android 表现不一致、键盘遮挡、滚动穿透、安全区、日期、音视频、1px | `web/mobile-compat.md` |
 | 首屏慢、包体积大、图片、缓存、弱网 | `web/performance.md` |
+| 后台管理项目：管理员登录、菜单和按钮权限 | `rbac.md` |
 | 按 id 读写资源、渲染用户内容、用户填的链接、文件上传、限流、依赖漏洞 | `security.md` |
-| 页面、组件、样式、颜色字号间距、shadcn/ui 主题、加载/空/错误状态、toast 和确认弹窗 | `design.md` |
+| 页面、组件、样式、颜色字号间距、shadcn/ui 主题、加载/空/错误状态、toast 和确认弹窗 | `design.md`（token 和规则）+ `web/design.md`（Web 落地和验收） |
 
 ## 项目结构
 

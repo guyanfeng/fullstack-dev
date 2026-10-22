@@ -2,7 +2,7 @@
 
 写接口、上传、渲染用户内容，或者用户要求做安全审查时读本文件。本文件只写其他文件没写的规则；已有的规则在下表，审查时一并对照，不在这里重复。
 
-不在本文件范围内：支付、个人信息合规（隐私保护指引、注销等）、后台管理与角色权限。遇到时先问用户。
+不在本文件范围内：支付、个人信息合规（隐私保护指引、注销等），遇到时先问用户。后台管理与角色权限见 `rbac.md`。
 
 | 已有规则 | 位置 |
 |---|---|
@@ -39,7 +39,7 @@ Web 的 cookie 设在 `.example.com`、`SameSite=Lax`（见 `auth.md`）。这�
   const csrfMw = csrf({ origin: [env.WEB_ORIGIN] })
   app.use('*', (c, next) => (c.req.header('Authorization') ? next() : csrfMw(c, next)))
   ```
-  挂在 `cors` 之后、`auth` 之前。它只检查非 GET 的表单类请求，被拒时抛 403，由 `onError` 转成 `40300`。
+  有后台管理项目时 `origin` 按路径选，见 `rbac.md`「C 端和后台的 origin 分开放行」。挂在 `cors` 之后、`auth` 之前。它只检查非 GET 的表单类请求，被拒时抛 403，由 `onError` 转成 `40300`。
 - GET 请求不能有副作用（`SameSite=Lax` 下，别的站点通过链接跳转发起的 GET 也会带 cookie）。
 - Next 的 `app/auth/login/route.ts`、`app/auth/logout/route.ts` 同理：先校验请求头 `Origin` 等于 `WEB_ORIGIN`，不等就拒绝。
 
@@ -59,7 +59,7 @@ Web 的 cookie 设在 `.example.com`、`SameSite=Lax`（见 `auth.md`）。这�
 - 调用有配额或收费的第三方接口的（内容安全检测、订阅消息等）。
 - 签发上传凭证、发表内容、导出数据的。
 
-计数方式和 `auth.md` 一样放进程内存。登录后的接口按 `userId` 计数，未登录的按 IP 计数（只信自己反向代理设置的头，如 `X-Real-IP`）。阈值按业务定，不清楚就问用户。
+计数方式和 `auth.md` 一样放进程内存。登录后的接口按 `userId` 计数，未登录的按 IP 计数（取法见 `api/testing-deploy.md`「真实 IP」）。阈值按业务定，不清楚就问用户。
 
 ## 文件上传
 

@@ -21,6 +21,15 @@ drizzle.config.ts
   - `<单数表名>Id`：UUID v7，加唯一约束，是这一行对外的标识。比如 `users.userId`、`surveys.surveyId`（数据库列名经 `casing` 转成 `user_id`、`survey_id`）。Drizzle 写 `uuid('user_id').notNull().unique().$defaultFn(() => Bun.randomUUIDv7())`，在应用里生成，不依赖 PostgreSQL 版本。
   - **外键引用对方的 UUID，不引用自增 `id`**，列名和对方的 UUID 列同名：`surveys.userId` → `users.userId`。这样数据导出、合并到另一个库时，关联关系不依赖自增值，不用重新映射。
   - 接口的入参、出参、URL 都只用 UUID，响应 schema 里是 `z.string().uuid()`，不返回自增 `id`。
+- 公共列写成 helper，所有表复用（`src/db/columns.ts`）：
+  ```ts
+  export const id = () => bigint('id', { mode: 'number' }).generatedAlwaysAsIdentity().primaryKey()
+  export const timestamps = {
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+  }
+  ```
+  `$onUpdate` 要求 drizzle-orm ≥ 0.30.5，而且只在通过 Drizzle 执行 `update` 时由应用填值，迁移里不会生成数据库触发器；手写 SQL 的 `UPDATE` 要自己设置 `updated_at`。现有项目版本更低时沿用项目原来的写法。
 - 金额用整数存「分」（`integer` 或 `bigint`），不要用 `float` 或 `real`。
 - 枚举优先用 `text` + zod / 应用层校验，或者 pg enum。pg enum 增加值比较容易，删除和改名很麻烦，要慎用。
 - 外键列一定要建索引。

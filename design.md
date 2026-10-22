@@ -1,8 +1,8 @@
-# 设计系统：token、落地方式与交互规则
+# 设计系统：token、组件化与交互规则
 
 适用：小程序和 Web 项目里写页面、组件、样式，以及处理加载、空、错误状态和操作反馈时。
 
-本文件只规定**结构和规则**：token 有哪些、叫什么、在各端写在哪里、怎么被组件库使用，以及交互该怎么反馈。下面给出的数值是**默认值**，每个项目都可以覆盖。好不好看属于审美判断，交给 `design-taste-frontend` 去做；截图验收交给 `visual-render-checker`。
+本文件只规定两端共享的**结构和规则**：token 有哪些、叫什么、怎么被组件库使用，以及交互该怎么反馈；各端怎么落地见「各端落地」。下面给出的数值是**默认值**，每个项目都可以覆盖。好不好看属于审美判断，交给 `design-taste-frontend` 去做；截图验收交给 `visual-render-checker`。
 
 **取值优先级：设计稿 > 项目已有的 token / 主题 > 本文件的默认值。** 现有项目已经有自己的主题变量或组件库时，沿用它，不要迁移到本文件的命名（见 `SKILL.md`「第零步：先看现状」）。
 
@@ -92,127 +92,10 @@
 - 过渡时长 150–250ms，用 ease-out。只给状态变化（展开、出现、切换）加动效，不给首屏内容加入场动画。
 - Web：有动效的地方加 `motion-reduce:` 关闭或减弱。
 
-## Web 落地（Next.js + Tailwind v4 + shadcn/ui）
+## 各端落地
 
-- 新项目用 `npx shadcn@latest init` 初始化，token 全部写在它生成的 `app/globals.css` 里（用了 `src/` 目录的项目是 `src/app/globals.css`）。现有项目没有用 shadcn 时，不为了本规范引入。
-- 把 `:root` 里对应变量的值换成上面颜色表的默认值；shadcn 生成的其他变量（`secondary`、`accent`、`popover`、`input`、`ring`、`chart-*`、`sidebar-*`）保留，`input` 取颜色表里 `--input` 的值，`ring` 取 `--primary` 的值。
-- shadcn 默认没有的 `--success`、`--warning`，按 shadcn 的自定义 token 方式补上：
-
-  ```css
-  :root {
-    --success: #0B6F51;
-    --warning: #A94605;
-  }
-
-  @theme inline {
-    --color-success: var(--success);
-    --color-warning: var(--warning);
-  }
-  ```
-
-  之后就能写 `text-success`、`text-warning`。
-- 生成的 `.dark` 块原样保留但不启用（不给 `<html>` 加 `dark` 类，不装主题切换），留给以后做暗色模式。
-- 用法：`bg-background`、`bg-card`、`text-foreground`、`text-muted-foreground`、`border-border`（分割线、卡片）、`border-input`（自己写的输入类控件的边框）、`bg-primary text-primary-foreground`、`text-destructive`。
-- 图标用 shadcn 默认的 `lucide-react`，颜色跟随文字（`currentColor`），不单独给图标写色值。
-- `components/ui/` 下是 shadcn 生成的组件代码，改主题只改 `globals.css`；要改组件行为时可以改这里的代码，但不要在里面写死颜色。
-
-## 小程序落地（uni-app + wot UI）
-
-- 新项目用 wot UI v2，npm 包名是 **`@wot-ui/ui`**（旧包 `wot-design-uni` 停在 1.x，已经在用它的项目沿用，不主动升级）。按官方文档在 `pages.json` 的 `easycom.custom` 里加 `"^wd-(.*)": "@wot-ui/ui/components/wd-$1/wd-$1.vue"`，组件免注册。
-- token 写在 `src/styles/tokens.scss`，在 `App.vue` 的全局样式里引入。如果项目还引入了 wot 的主题文件（`@wot-ui/ui/styles/theme/index.scss`），tokens 要放在它**后面**引入，否则会被覆盖。
-
-  ```scss
-  // src/styles/tokens.scss
-  page,
-  .wd-root-portal {
-    --primary: #1C64FD;
-    --primary-foreground: #FFFFFF;
-    --background: #F7F8FA;
-    --foreground: #1D1F29;
-    --card: #FFFFFF;
-    --muted: #F2F3F5;
-    --muted-foreground: #666B7F;
-    --border: #E5E6EB;
-    --input: #868A9C;
-    --destructive: #D42B2B;
-    --success: #0B6F51;
-    --warning: #A94605;
-
-    --text-xs: 24rpx;
-    --text-sm: 28rpx;
-    --text-base: 32rpx;
-    --text-lg: 36rpx;
-    --text-xl: 40rpx;
-    --text-2xl: 48rpx;
-
-    --page-gutter: 32rpx;
-    --card-padding: 32rpx;
-    --section-gap: 24rpx;
-
-    --radius-sm: 8rpx;
-    --radius-md: 16rpx;
-    --radius-lg: 24rpx;
-
-    --shadow-float: 0 8rpx 24rpx rgba(0, 0, 0, 0.08);
-
-    // 让 wot 组件跟着同一组 token 走（只映射颜色）
-    // 主色：默认值就是 wot 的默认蓝，不用映射；改品牌色见下文
-    // 状态色：常态和悬停都用 token 本身，按下态用 wot 同色系深一档
-    // disabled / particular / surface（浅色底）沿用 wot 默认
-    --wot-danger-main: var(--destructive);
-    --wot-danger-hover: var(--destructive);
-    --wot-danger-clicked: #BC2626; // wot red-8
-    --wot-success-main: var(--success);
-    --wot-success-hover: var(--success);
-    --wot-success-clicked: #074A36; // wot green-9
-    --wot-warning-main: var(--warning);
-    --wot-warning-hover: var(--warning);
-    --wot-warning-clicked: #813604; // wot orange-9
-    // 控件边界：未选中的复选框、单选框和关闭的开关轨道，wot 默认是 #E5E6EB（1.25:1），改用 --input
-    --wot-checkbox-unchecked-color: var(--input);
-    --wot-radio-unchecked-color: var(--input);
-    --wot-switch-color-inactive-bg: var(--input);
-    --wot-switch-color-inactive-icon: var(--foreground);
-    --wot-switch-color-inner-inactive-text: var(--foreground);
-    --wot-text-main: var(--foreground);
-    --wot-text-auxiliary: var(--muted-foreground);
-    --wot-border-main: var(--border);
-    --wot-filled-bottom: var(--background);
-  }
-
-  page {
-    background-color: var(--background);
-    color: var(--foreground);
-    font-size: var(--text-sm);
-  }
-  ```
-
-- 改了 `--destructive`、`--success`、`--warning` 的，对应的 `-clicked` 也要换成新颜色深一档的值，并检查白字对比度。
-- wot 的表单行（`wd-form-item`、`wd-cell`）底线走 `--wot-border-main`，也就是 `--border`，按装饰处理，不改成 `--input`。原因：`wd-input` 本身没有边框，一行输入框是靠左侧的标题和整行布局识别的，不是靠这条线。所以前提是**每个输入行都有可见的标题**（`wd-form-item` / `wd-cell` 的 `title`），不能只靠 placeholder 提示要填什么。
-- wot 组件内部用浅色底配状态色文字的地方（浅色标签、提示条，用 `-particular` / `-surface`），沿用 wot 默认，没有逐个核对对比度。用到这类组件时要自己检查。
-- **改品牌色时**：wot 的主色是 `--wot-primary-1` 到 `--wot-primary-10` 一整套色阶（浅色背景、按下态都用到别的档位），只改 `-6` 会出现按下态、浅色底仍是默认蓝。所以 10 档都要覆盖，并让 `--primary` 等于第 6 档。色阶从设计稿或色板工具拿。下面用 wot 自带的 grape 色板举例，组件只带了 SCSS 兜底值，没有引入 wot 主题文件时 `--wot-grape-*` 变量不存在，所以写色值：
-
-  ```scss
-  page,
-  .wd-root-portal {
-    --primary: #AE3EC9;
-    --wot-primary-1: #FBF6FD;
-    --wot-primary-2: #F3D9FA;
-    --wot-primary-3: #EEBEFA;
-    --wot-primary-4: #E599F7;
-    --wot-primary-5: #DA77F2;
-    --wot-primary-6: var(--primary);
-    --wot-primary-7: #9731AF;
-    --wot-primary-8: #7B288F;
-    --wot-primary-9: #601F70;
-    --wot-primary-10: #451650;
-  }
-  ```
-
-  换完检查：`--primary` 在 `--card`、`--background` 上和白字在 `--primary`、第 7 档上都 ≥ 4.5:1；再同步改 Web 的 `--primary` 和 `pages.json`（见下一条）。
-- 页面导航栏和 tabBar 的颜色在 `pages.json` 里配置，不能用 CSS 变量，改品牌色时要同步改这里。
-- 业务样式里用 `var(--xxx)`，不写色值。`rpx` 的规则见 `miniprogram/guide.md`。
-- 图标：优先用 wot 的 `wd-icon`；自定义图标用 SVG 文件放 `static/`，通过 `<image>` 引用。注意 `<image>` 里的 SVG 不能用 CSS 改颜色，需要多种颜色就准备多个文件。
+- Web（Next.js + Tailwind v4 + shadcn/ui）：见 `web/design.md`。
+- 小程序（uni-app + wot UI）：见 `miniprogram/design.md`。
 
 ## 组件化
 
@@ -316,36 +199,11 @@
 - 错误提示写原因和用户能做什么（「网络不太稳定，请重试」），不写技术信息（见 `SKILL.md`「安全」）。
 - 同一个动作在整个项目里用同一个词（不要这里叫「删除」那里叫「移除」）。
 
-## 验收命令
+## 验收
 
-在对应项目根目录执行，并在回复里贴出输出。命令扫描整个项目，TS 和 JS 文件都包含；排除依赖、构建产物（`.next`、`out`、`build`、`dist`、`unpackage`）、静态资源目录（`public`、`static`）和组件库生成的代码，所以 `app/` 和 `src/app/` 两种结构都能覆盖。项目的构建输出在别的目录时，自己补一个 `--exclude-dir`。命中的逐条确认：是 token 文件、或者确实必须写死的（如第三方要求的颜色），才可以保留。没有输出表示没有命中。
-
-```bash
-# Web：业务代码里写死的色值和调色板类名
-grep -rnE "#[0-9a-fA-F]{3,8}\b|rgba?\(|\b(bg|text|border(-[xytrblse])?|ring|fill|stroke|from|via|to|divide|outline|decoration|shadow|accent|caret|placeholder)-(white|black|(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-[0-9]{2,3})\b" . --include='*.tsx' --include='*.ts' --include='*.jsx' --include='*.js' --include='*.css' --include='*.scss' --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=out --exclude-dir=build --exclude-dir=dist --exclude-dir=public | grep -v "app/globals.css" | grep -v "components/ui/"
-
-# 小程序：业务代码里写死的色值
-grep -rnE "#[0-9a-fA-F]{3,8}\b|rgba?\(" . --include='*.vue' --include='*.scss' --include='*.css' --include='*.ts' --include='*.js' --exclude-dir=node_modules --exclude-dir=uni_modules --exclude-dir=unpackage --exclude-dir=dist --exclude-dir=static | grep -v "styles/tokens.scss" | grep -vE "utils/feedback\.(ts|js)"
-```
-
-`#` 开头的命中也可能是锚点链接之类的非颜色内容，逐条看。
-
-组件化检查（命中的逐条确认，能换成组件的要换）：
-
-```bash
-# Web：页面层（app/ 或 src/app/ 下）直接写块外观的地方
-grep -rnE "className=\"[^\"]*\b(bg-|rounded|shadow|border)" . --include='*.tsx' --include='*.jsx' --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=out --exclude-dir=build --exclude-dir=dist --exclude-dir=public | grep -E "^\./(src/)?app/"
-# Web：绕过反馈封装的原生弹窗，应为空
-grep -rnE "\b(window\.)?(alert|confirm)\(" . --include='*.tsx' --include='*.ts' --include='*.jsx' --include='*.js' --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=out --exclude-dir=build --exclude-dir=dist --exclude-dir=public | grep -v "components/ui/"
-
-# 小程序：页面层直接写块外观的地方
-grep -rnE "(background|border|border-radius|box-shadow)[a-z-]*\s*:" . --include='*.vue' --exclude-dir=node_modules --exclude-dir=uni_modules --exclude-dir=unpackage --exclude-dir=dist --exclude-dir=static | grep -E "^\./(src/)?(pages|subpkg-[^/]+)/" | grep -v "/components/"
-# 小程序：绕过反馈封装直接调用的，应为空
-grep -rnE "uni\.(showToast|showModal)|useToast|useDialog" . --include='*.vue' --include='*.ts' --include='*.js' --exclude-dir=node_modules --exclude-dir=uni_modules --exclude-dir=unpackage --exclude-dir=dist --exclude-dir=static | grep -vE "utils/feedback\.(ts|js)"
-```
+两端的 grep 验收命令在 `web/design.md`、`miniprogram/design.md` 末尾，按改动涉及的端执行。
 
 命令无法覆盖、需要在回复里提醒用户确认的：
 - 每个数据页面的加载、空、出错三种状态都实际看过（可以临时改接口返回或断网来触发）
 - 新写的 UI 先查过有没有可用的已有组件；同一个结构出现两次以上的，已经抽成组件
 - 改过颜色 token 的，文字对比度检查过
-- 小程序改过品牌色的，`pages.json` 里导航栏和 tabBar 的颜色同步改了，wot 的主色色阶 10 档都覆盖了

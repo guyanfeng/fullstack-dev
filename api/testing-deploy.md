@@ -81,10 +81,16 @@ WantedBy=multi-user.target
 - 改了 `.service` 文件要先 `systemctl daemon-reload`；首次部署 `systemctl enable --now api`。
 
 ### 其他
-- 提供 `GET /health` 健康检查接口，用于负载均衡探活和发布后确认。
+- 提供 `GET /health` 健康检查接口。服务只监听本机或内网地址，所以负载均衡探活请求的是 Nginx 的 `/health`，由 Nginx 转发给 API；发布后在服务器上用 `curl http://<HOST>:<PORT>/health` 确认（同机部署就是 `127.0.0.1`）。
 - 启动时先校验环境变量（`env.ts`），缺失就直接退出，不要带着错误配置运行。
 - 迁移作为独立步骤执行（部署流水线里在启动新版本之前执行；服务器上没有 Bun 和源码，`drizzle-kit migrate` 在 CI 或有源码的机器上连生产库执行），不要在每个实例启动时自动执行。`db/manual/` 下需要在事务外执行的 SQL 也在这一步执行（见 `api/database.md`）。
 - 处理 `SIGTERM`：停止接收新请求，等待正在处理的请求完成后再退出。
 - 多实例部署时，需要共享的状态放在数据库里，锁用数据库行锁，不能放在进程内存里。不引入 Redis。登录失败计数例外，放在进程内存里（见 `auth.md`「账号和密码」）。
-- 在 Nginx 或负载均衡后面时，从 `X-Forwarded-For` 获取真实 IP，并且只信任自己代理加的头。
+- **真实 IP（限流、审计日志都按这里取，API 和 Next 一样）**：只读 `X-Real-IP`，由自己的 Nginx 设置 `proxy_set_header X-Real-IP $remote_addr;`（会覆盖客户端自己带的同名头）。
+  - **API 和 Next 只允许自己的 Nginx 访问**，端口不对公网开放，否则客户端可以绕过 Nginx，自己带一个 `X-Real-IP`，限流和审计日志都能伪造。按 Nginx 的位置二选一：
+    - **Nginx 和服务在同一台机器**：API 的 `HOST` 用默认的 `127.0.0.1`（见 `api/guide.md`「入口」），Next 用 `next start -H 127.0.0.1`。
+    - **Nginx 在另一台机器**：不能绑 `127.0.0.1`（远程的 Nginx 连不上本机回环地址）。`HOST` 和 `-H` 设成本机的内网 IP，再用防火墙让这个端口只放行 Nginx 的内网地址。
+  - 应用代码不读 `X-Forwarded-For`：它最左边的值是客户端自己能填的。
+  - Nginx 前面还有 CDN 或负载均衡时，`$remote_addr` 是它们的地址，要先在 Nginx 里按它们的文档用 realip 模块还原（`set_real_ip_from` 填 CDN/LB 的地址段，`real_ip_header` 按文档可以是 `X-Forwarded-For`），还原后的 `$remote_addr` 仍然只通过 `X-Real-IP` 传给应用。不清楚部署结构就问用户。
+  - 取不到（本地开发没有 Nginx）时按 `'unknown'` 处理，不回退去读别的头。
 - 微信消息推送地址必须是公网可访问的 HTTPS 地址，不能带鉴权中间件（它靠验签来保证安全）。
